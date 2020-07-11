@@ -1,28 +1,62 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jul  7 23:47:31 2020
+Created on Sun Jul 12 02:29:56 2020
 
 @author: ashishdwivedi
 """
-from datetime import time
+
 import numpy as np
 from l1solver import l1RegressionSolver
+import copy
+from datetime import time
 
-# SET THE BELOW FIELDS ACCORDING TO YOUR EXPERIEMNT SETTING
+# SET THE BELOW FIELDS ACCORDING THE YOUR EXPERIEMNT SETTING
 sketch_size = []
 l1normOpt = []
 n = 0 # the number of rows in put feature matrix
 row = n
 iterations = 10
-def ON(A,b):
-    print("-----ON-----")
+#####################################################
+
+
+def LewisIterate(A,w):
+    # beta = 1
+    # p = 1
+    global n
+    w_hat_iter = []
+    W = np.diag(w)
+    W_inv = np.linalg.inv(W) # p = 1 => 1 - 2/p = -1
+    T = np.linalg.inv(np.matmul(np.matmul(A.T,W_inv),A))
+    w_hat = np.sqrt(np.diagonal(np.matmul(np.matmul(A,T),A.T)))
+    return w_hat
+
+#################
+####
+#################
+
+def ApproxLewisWeight(A,T):
+    global n
+    wi = 1
+    w  = list(np.ones((n)))
+    for t in range(1,T):
+        w = LewisIterate(A,w)
+        print(w)
+    return w
+## ---------------------------
+def lewisWeight(A,b):
+    print("---------- Lewis Weight ------------")
     l1norm=[] #for storing l1 norm across various size changes
     iter_data=[]
     time_per_k = []
-    u,e,vt = np.linalg.svd(A,full_matrices=False)
-    leveragescore = np.sum(np.abs(u),axis=1) # for rows the matrix considered is column :
-    prob = leveragescore/sum(leveragescore)
+    
+    #u,e,vt = np.linalg.svd(A,full_matrices=False)
+    #leveragescore = np.sum(np.abs(u),axis=1) # for rows the matrix considered is column :
+    
+    # T = 2
+    w = ApproxLewisWeight(A,2)
+    leveragescore = np.array(w)
+    prob = leveragescore/sum(leveragescore)  
     for k in sketch_size: # s represent the list of number of cluster
         r=0
         temp_data=[]
